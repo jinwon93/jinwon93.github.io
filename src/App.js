@@ -1,4 +1,4 @@
-import logo from './logo.svg';
+//import logo from './logo.svg';
 import './App.css';
 import React,{useState} from 'react';
 
@@ -6,7 +6,7 @@ import React,{useState} from 'react';
 function App() {
   
   let [글제목,글제목변경] = useState(['react','react2','react3']);
-  let posts = "고기맛집";
+  // let posts = "고기맛집";
   let [따봉,따봉변경] = useState(0);
 
   function 제목바꾸기(){
