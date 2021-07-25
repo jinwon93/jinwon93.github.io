@@ -32,7 +32,7 @@ function App() {
           <hr></hr>
         </div>
         <div className="list">
-          <h4>{글제목[2]}</h4>
+          <h4>{글제sssss목[2]}</h4>
           <p>날짜</p>
           <hr></hr>
         </div>
