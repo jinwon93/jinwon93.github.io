@@ -1,0 +1,27 @@
+---
+layout: default
+---
+<div class="home">
+  <h2 class="post-list-heading">Posts</h2>
+  <ul class="post-list">
+    {%- for post in paginator.posts -%}
+    <li>
+      <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+      <h3><a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a></h3>
+      {%- if site.show_excerpts -%}{{ post.excerpt }}{%- endif -%}
+    </li>
+    {%- endfor -%}
+  </ul>
+
+  <div class="pagination" style="display:flex;justify-content:space-between;margin:2rem 0;">
+    {%- if paginator.previous_page -%}
+      <a href="{{ paginator.previous_page_path | relative_url }}">&larr; 최근 글</a>
+    {%- else -%}<span></span>{%- endif -%}
+    <span>{{ paginator.page }} / {{ paginator.total_pages }}</span>
+    {%- if paginator.next_page -%}
+      <a href="{{ paginator.next_page_path | relative_url }}">이전 글 &rarr;</a>
+    {%- else -%}<span></span>{%- endif -%}
+  </div>
+
+  <p class="rss-subscribe">subscribe <a href="{{ '/feed.xml' | relative_url }}">via RSS</a></p>
+</div>
