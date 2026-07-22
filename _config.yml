@@ -1,0 +1,23 @@
+title: jinwon.log
+description: 데이터베이스 성능, 백엔드 설계, AI 협업 — 실측으로 검증한 것만 씁니다.
+url: "https://jinwon93.github.io"
+baseurl: ""
+author:
+  name: 곽진원
+  email: wlsdnjs8208@gmail.com
+
+theme: minima
+minima:
+  skin: dark
+  social_links:
+    - { platform: github, user_url: "https://github.com/jinwon93" }
+
+header_pages:
+  - about.md
+
+permalink: /:year/:month/:title/
+show_excerpts: true
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
