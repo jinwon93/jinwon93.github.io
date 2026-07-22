@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "간헐 로그아웃의 범인은 prefetch였다 — refresh token 회전 경쟁 추적기"
-date: 2026-07-22 14:00:00 +0900
+date: 2026-07-22 09:30:00 +0900
 categories: nextjs auth
 tags: [Next.js, Supabase, 인증, refresh-token, 트러블슈팅]
 ---
