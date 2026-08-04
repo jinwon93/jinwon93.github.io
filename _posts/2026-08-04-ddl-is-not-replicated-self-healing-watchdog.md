@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "DDL은 복제되지 않는다 — 본 DB의 ALTER TABLE 한 줄에 멈춘 복제, 스스로 고치게 만들기"
-date: 2026-08-04 19:30:00 +0900
+date: 2026-08-04 18:00:00 +0900
 categories: database postgresql
 tags: [logical-replication, postgresql, supabase, schema-drift, fdw, incident]
 ---
