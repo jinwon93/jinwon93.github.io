@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>소등일 — 읽기·표시</title>
+<style>
+:root{color-scheme:light;--bg:#faf8f3;--paper:#fffdf8;--ink:#23211c;--sub:#7a7468;--line:#e8e2d6;--accent:#8a5a2b;--blue:#3e63dd}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:20;background:rgba(250,248,243,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.bar{max-width:760px;margin:0 auto;padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:.02em;margin-right:auto;font-size:15px}
+.brand small{font-weight:400;color:var(--sub);margin-left:6px}
+select,button,input,textarea{font:inherit}
+select{padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;max-width:56vw}
+.btn{padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.ghost{background:transparent}
+.tabs{max-width:760px;margin:0 auto;padding:0 14px 8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tab{padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:14px}
+.tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.tog{font-size:13px;color:var(--sub);display:flex;align-items:center;gap:4px;margin-left:4px}
+.prog{height:3px;background:var(--line)}
+.prog i{display:block;height:100%;background:var(--accent);width:0}
+main{max-width:760px;margin:0 auto;padding:18px 18px 140px}
+.paper{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:26px 22px 30px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+h1.ep{font-family:"AppleMyungjo","Noto Serif KR","Nanum Myeongjo",serif;font-size:22px;margin:0 0 4px}
+.meta{color:var(--sub);font-size:13px;margin-bottom:22px}
+.p{font-family:"AppleMyungjo","Noto Serif KR","Nanum Myeongjo",serif;font-size:var(--fs,17.5px);line-height:1.95;margin:0 -10px;padding:5px 10px;border-radius:8px;position:relative;cursor:pointer;word-break:keep-all;overflow-wrap:anywhere}
+.p+.p{margin-top:10px}
+.p:hover{background:#f6f1e7}
+.p.dia{padding-left:16px}
+.p.sep{text-align:center;color:var(--sub);cursor:default}
+.p.flag{background:linear-gradient(transparent 62%,#fff1b8 62%)}
+body.noflag .p.flag{background:none}
+.p.chg::before{content:"";position:absolute;left:-2px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--blue);opacity:.55}
+body.nochg .p.chg::before{display:none}
+.p.marked{box-shadow:inset 0 0 0 2px var(--mc,#e5484d);background:color-mix(in srgb,var(--mc,#e5484d) 8%,transparent)}
+.p .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;font-family:-apple-system,"Apple SD Gothic Neo",sans-serif}
+.chip{font-size:12px;padding:2px 8px;border-radius:99px;color:#fff;white-space:nowrap}
+.p .memo{font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;font-size:13px;color:#555;margin-top:4px;background:#fff;border:1px dashed var(--line);border-radius:6px;padding:4px 8px}
+.p .q{background:#ffe5e5;border-radius:3px}
+.endbox{margin-top:30px;border-top:1px dashed var(--line);padding-top:18px}
+.endbox textarea{width:100%;min-height:70px;border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical;background:#fff}
+.endbox .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--sub);margin:14px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.sw{width:14px;height:10px;border-radius:2px;display:inline-block}
+/* 표시 시트 */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:40;display:none}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-radius:16px 16px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.12);max-height:86vh;overflow:auto;transform:translateY(105%);transition:transform .2s}
+.sheet.on{transform:none}.scrim.on{display:block}
+.sheet .in{max-width:760px;margin:0 auto;padding:14px 16px calc(18px + env(safe-area-inset-bottom))}
+.grab{width:42px;height:4px;border-radius:4px;background:#ddd;margin:0 auto 10px}
+.sh-ttl{font-size:13px;color:var(--sub);margin-bottom:6px}
+.sents{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.sent{font-family:"AppleMyungjo","Noto Serif KR",serif;font-size:15px;line-height:1.5;padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:#fcfaf5;cursor:pointer;text-align:left}
+.sent.on{background:#ffe5e5;border-color:#e5484d}
+.cats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.cat{padding:11px 10px;border-radius:10px;border:2px solid var(--line);background:#fff;cursor:pointer;font-size:15px;text-align:left}
+.cat.on{color:#fff}
+.flagnote{font-size:12.5px;background:#fff8d6;border-radius:8px;padding:6px 9px;margin:0 0 10px;color:#6b5a1d}
+.memo-in{width:100%;margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px;min-height:54px;resize:vertical}
+.sh-act{display:flex;gap:8px;margin-top:12px}
+.sh-act .btn{flex:1;padding:11px}
+/* 목록·보내기 */
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 8px;font-size:15px}
+.it{padding:8px 0;border-top:1px dashed var(--line);cursor:pointer}
+.it:first-of-type{border-top:0}
+.it .txt{font-family:"AppleMyungjo","Noto Serif KR",serif;font-size:14.5px;line-height:1.6}
+.stat{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+pre.out{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13px;line-height:1.6;max-height:50vh;overflow:auto}
+.hint{color:var(--sub);font-size:13px;line-height:1.6}
+.grid-eps{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
+.ge{border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px 0;text-align:center;cursor:pointer;font-size:13px;position:relative}
+.ge.read{background:#efe6d6}
+.ge b{position:absolute;top:-6px;right:-4px;background:#e5484d;color:#fff;font-size:10px;border-radius:99px;padding:0 5px}
+.ge.cur{outline:2px solid var(--accent)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#23211c;color:#fff;padding:9px 14px;border-radius:99px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:.95}
+.hide{display:none!important}
+.bf{background:#fdecec;border-left:3px solid #d9534f;padding:8px 10px;border-radius:6px;margin:6px 0;white-space:pre-wrap;font-size:15px;line-height:1.7}
+.af{background:#eaf6ec;border-left:3px solid #3c9a52;padding:8px 10px;border-radius:6px;margin:6px 0;white-space:pre-wrap;font-size:15px;line-height:1.7}
+.bf b,.af b{font-size:12px;color:#777;display:block;font-weight:600}
+.hb{margin:14px 0 6px;font-weight:700}
+.dtabs{display:flex;gap:6px;overflow-x:auto;padding:8px 0 4px}
+.dt{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:inherit;border-radius:10px;padding:6px 12px;font:inherit;cursor:pointer}
+.dt small,.chipk small{opacity:.65;margin-left:4px;font-size:11px}
+.dt.on{background:#3c6e9a;color:#fff;border-color:#3c6e9a}
+.hbk .hb{cursor:pointer;margin:0}
+.hs{font-weight:400;font-size:12px;opacity:.7;margin-top:3px}
+.tm{font-variant-numeric:tabular-nums;opacity:.7;font-weight:400}
+.kb{display:inline-block;border-radius:99px;padding:1px 8px;font-size:12px;color:#fff;font-weight:600}
+.kb.k-au{background:#b0563a}.kb.k-rv{background:#5b6b7a}.kb.k-wr{background:#4f7a4f}
+.hctl+.hctl{margin-top:6px}
+
+.hi{padding:10px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.why{display:inline-block;background:#8a5a2b;color:#fff;border-radius:99px;padding:1px 8px;font-size:12px;margin-left:6px}
+.hctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.prevbox{margin:8px 0 10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">소등일 <small id="ver"></small></div>
+    <button class="btn" id="prev" aria-label="이전 화">◀</button>
+    <select id="sel" aria-label="회차"></select>
+    <button class="btn" id="next" aria-label="다음 화">▶</button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-v="read">읽기</button>
+    <button class="tab" data-v="list">표시 모아보기 <span id="cnt"></span></button>
+    <button class="tab" data-v="eps">회차 한눈에</button>
+    <button class="tab" data-v="hist">고친 내역</button>
+    <button class="tab" data-v="send">보내기</button>
+    <label class="tog"><input type="checkbox" id="tFlag" checked>기계 의심</label>
+    <label class="tog"><input type="checkbox" id="tChg">바뀐 줄</label>
+    <label class="tog">글자 <button class="btn ghost" id="fsM" style="padding:2px 8px">−</button><button class="btn ghost" id="fsP" style="padding:2px 8px">+</button></label>
+  </div>
+  <div class="prog"><i id="bar"></i></div>
+</header>
+
+<main>
+  <section id="v-read">
+    <div class="paper" id="paper"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+  <section id="v-list" class="hide"></section>
+  <section id="v-eps" class="hide"></section>
+  <section id="v-send" class="hide"></section>
+  <section id="v-hist" class="hide"></section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="표시하기">
+  <div class="in">
+    <div class="grab"></div>
+    <div class="sh-ttl" id="shTtl"></div>
+    <div id="shFlag"></div>
+    <div id="shPrev" class="prevbox"></div>
+    <div class="hint">걸리는 문장만 누르세요(안 누르면 문단 전체).</div>
+    <div class="sents" id="sents"></div>
+    <div class="cats" id="cats"></div>
+    <textarea class="memo-in" id="memo" placeholder="한 줄 메모 (예: 접수관이?? 무슨 말인지 모르겠네)"></textarea>
+    <div class="sh-act">
+      <button class="btn" id="shDel">표시 지우기</button>
+      <button class="btn" id="shCancel">닫기</button>
+      <button class="btn pri" id="shSave">저장</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+
+<style>
+#gate{position:fixed;inset:0;z-index:999;background:var(--bg,#faf7f0);overflow:auto;padding:28px 18px;font-size:16px}
+#gate .box{max-width:520px;margin:0 auto}
+#gate h2{margin:0 0 6px}
+#gate input{font:inherit;padding:10px;border:1px solid #bbb;border-radius:10px;width:100%;box-sizing:border-box}
+#gate .r{display:flex;gap:8px;align-items:center;margin:12px 0}
+#gate .r input{width:5.5em;text-align:center}
+#gate button{font:inherit;padding:10px 16px;border-radius:10px;border:1px solid #888;background:#fff}
+#gate button.pri{background:#3c6e9a;color:#fff;border-color:#3c6e9a}
+#gate .h{color:#666;font-size:14px;line-height:1.6}
+#gate .err{color:#c0392b;margin-top:8px}
+#rng{position:fixed;right:10px;bottom:10px;z-index:50;font-size:13px;padding:6px 10px;border-radius:99px;border:1px solid #999;background:#fff;opacity:.85}
+</style>
+<div id="gate"><div class="box">
+ <h2>소등일 읽기</h2>
+ <div id="gTok">
+  <div class="h">처음 한 번만: 깃허브에서 만든 열쇠(토큰)를 붙여 넣으세요. 이 폰에만 저장됩니다.</div>
+  <div class="r"><input id="tok" type="password" autocomplete="off" placeholder="github_pat_…"></div>
+ </div>
+ <div class="h" id="gInfo">원고 목록을 불러오는 중…</div>
+ <div class="r">회차 <input id="ga" inputmode="numeric"> ~ <input id="gb" inputmode="numeric"> 화</div>
+ <div class="r"><button class="pri" id="gGo">불러오기</button><button id="gForget">열쇠 지우기</button></div>
+ <div class="err" id="gErr"></div>
+ <div class="h">불러온 원고는 이 화면을 닫으면 폰에 남지 않습니다. 표시는 「보내기 → 깃허브로 보내기」로 보내기 전까지만 폰에 저장됩니다.</div>
+</div></div>
+<script type="text/plain" id="sdi-main">
+const DATA=window.__DATA||/*__DATA__*/null;
+const CATS=[
+ {k:'meaning',l:'뜻 모르겠음',c:'#e5484d'},
+ {k:'explain',l:'설명투',c:'#f76b15'},
+ {k:'old',l:'옛말·어려운 말',c:'#a0703c'},
+ {k:'figure',l:'억지 비유',c:'#8e4ec6'},
+ {k:'speaker',l:'누가 말하는지 헷갈림',c:'#3e63dd'},
+ {k:'fact',l:'사실 안 맞음',c:'#d6409f'},
+ {k:'filler',l:'군더더기',c:'#6f6e77'},
+ {k:'good',l:'좋음 👍',c:'#30a46c'}
+];
+const CMAP=Object.fromEntries(CATS.map(c=>[c.k,c]));
+const KEY='sodeungil_reader_v1';
+let S={marks:{},notes:{},read:{},cur:DATA.eps[0].n,fs:17.5,flag:true,chg:false,pos:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)S=Object.assign(S,s);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('저장 공간을 못 써요 — 보내기로 내보내 두세요');}mirror();}
+// 클로드가 아티팩트 디버그 로그로 표시를 바로 읽도록 한 줄씩 남긴다(보내기 없이)
+function mirror(){try{const L=exportText().split('\n');console.log('SDI_MARKS_BEGIN '+L.length);L.forEach(l=>console.log('SDI '+l));console.log('SDI_MARKS_END');}catch(e){}}
+const $=id=>document.getElementById(id);
+const EP=Object.fromEntries(DATA.eps.map(e=>[e.n,e]));
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),1600);}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function splitSent(t){const r=t.match(/[^.?!…」"]+(?:[.?!…]+["」]?|["」]|$)/g)||[t];return r.map(s=>s.trim()).filter(Boolean);}
+function marksOf(n){return S.marks[n]||{};}
+function total(){let k=0;for(const n in S.marks)k+=Object.keys(S.marks[n]).length;return k;}
+
+$('ver').textContent='원고 '+DATA.commit+' · '+DATA.built;
+document.documentElement.style.setProperty('--fs',S.fs+'px');
+$('tFlag').checked=S.flag;$('tChg').checked=S.chg;
+document.body.classList.toggle('noflag',!S.flag);document.body.classList.toggle('nochg',!S.chg);
+
+// 회차 고르기
+$('sel').innerHTML=DATA.eps.map(e=>`<option value="${e.n}">${esc(e.t)}<\/option>`).join('');
+function go(n,keepScroll){
+  if(!EP[n])return; S.cur=+n; save(); $('sel').value=n; render();
+  if(!keepScroll) window.scrollTo(0,S.pos[n]||0);
+}
+$('sel').onchange=e=>go(+e.target.value);
+$('prev').onclick=()=>{const i=DATA.eps.findIndex(e=>e.n==S.cur);if(i>0){S.pos[S.cur]=scrollY;go(DATA.eps[i-1].n);window.scrollTo(0,0);}};
+$('next').onclick=()=>{const i=DATA.eps.findIndex(e=>e.n==S.cur);if(i<DATA.eps.length-1){S.pos[S.cur]=scrollY;go(DATA.eps[i+1].n);window.scrollTo(0,0);}};
+$('fsM').onclick=()=>{S.fs=Math.max(14,S.fs-1);document.documentElement.style.setProperty('--fs',S.fs+'px');save();};
+$('fsP').onclick=()=>{S.fs=Math.min(24,S.fs+1);document.documentElement.style.setProperty('--fs',S.fs+'px');save();};
+$('tFlag').onchange=e=>{S.flag=e.target.checked;document.body.classList.toggle('noflag',!S.flag);save();};
+$('tChg').onchange=e=>{S.chg=e.target.checked;document.body.classList.toggle('nochg',!S.chg);save();};
+
+// 읽기
+function paraHTML(n,ln,t){
+  const m=marksOf(n)[ln]; const fl=(DATA.flags[n]||{})[ln]; const ch=(DATA.changed[n]||[]).includes(ln);
+  let cls='p'; if(/^["“「]/.test(t))cls+=' dia'; if(t.trim()==='***')cls+=' sep'; if(fl)cls+=' flag'; if(ch)cls+=' chg';
+  let body=esc(t), style='';
+  if(m){cls+=' marked'; const c=CMAP[m.cats[0]]; style=` style="--mc:${c?c.c:'#e5484d'}"`;
+    (m.quotes||[]).forEach(q=>{const e=esc(q); if(e&&body.includes(e)) body=body.replace(e,`<span class="q">${e}<\/span>`);});
+    body+=`<div class="tags">${m.cats.map(k=>`<span class="chip" style="background:${CMAP[k].c}">${CMAP[k].l}<\/span>`).join('')}<\/div>`;
+    if(m.memo) body+=`<div class="memo">${esc(m.memo)}<\/div>`;
+  }
+  return `<div class="${cls}" data-l="${ln}"${style}>${body}<\/div>`;
+}
+function render(){
+  const e=EP[S.cur]; const done=!!S.read[e.n];
+  let h=`<h1 class="ep">${esc(e.t)}<\/h1><div class="meta">${e.p.length}문단 · 표시 ${Object.keys(marksOf(e.n)).length}개${done?' · 다 읽음 ✓':''}<\/div>`;
+  h+=e.p.map(([ln,t])=>paraHTML(e.n,ln,t)).join('');
+  const note=S.notes[e.n]||'';
+  h+=`<div class="endbox"><div class="hint">이 화 한마디 (선택) — 제일 좋았던 줄 / 제일 걸린 줄 / 인물이 그 사람 같았나<\/div>
+     <textarea id="note" placeholder="예: 성 영감 대사 좋음. 중간 서류 얘기 길다.">${esc(note)}<\/textarea>
+     <div class="row"><button class="btn" id="noteSave">한마디 저장<\/button>
+     <button class="btn ${done?'':'pri'}" id="doneBtn">${done?'다 읽음 취소':'이 화 다 읽음 ✓'}<\/button>
+     <button class="btn" id="nextBtn">다음 화 ▶<\/button><\/div><\/div>`;
+  $('paper').innerHTML=h;
+  $('noteSave').onclick=()=>{S.notes[e.n]=$('note').value.trim();if(!S.notes[e.n])delete S.notes[e.n];save();toast('한마디 저장');};
+  $('doneBtn').onclick=()=>{if(S.read[e.n])delete S.read[e.n];else S.read[e.n]=1;const v=$('note').value.trim();if(v)S.notes[e.n]=v;save();render();toast(S.read[e.n]?'다 읽음':'취소');};
+  $('nextBtn').onclick=()=>$('next').click();
+  $('paper').querySelectorAll('.p:not(.sep)').forEach(el=>el.onclick=()=>openSheet(e.n,+el.dataset.l));
+  $('cnt').textContent=total()?`(${total()})`:'';
+  const r=Object.keys(S.read).length; $('bar').style.width=(r/DATA.eps.length*100)+'%';
+}
+$('legend').innerHTML=`<span><i class="sw" style="background:#fff1b8"><\/i>기계가 의심한 줄<\/span><span><i class="sw" style="background:var(--blue);opacity:.55"><\/i>최근에 고친 줄<\/span><span>문단을 누르면 표시합니다<\/span>`;
+
+// 표시 시트
+let cur=null;
+function openSheet(n,ln){
+  const t=EP[n].p.find(p=>p[0]==ln)[1]; const m=marksOf(n)[ln]||{cats:[],memo:'',quotes:[]};
+  cur={n,ln,t,cats:new Set(m.cats),quotes:new Set(m.quotes||[])};
+  $('shTtl').textContent=`${n}화 · ${ln}줄`;
+  const fl=(DATA.flags[n]||{})[ln];
+  $('shFlag').innerHTML=fl?`<div class="flagnote">🤖 ${fl.map(esc).join('<br>🤖 ')}<\/div>`:'';
+  const pv=((DATA.prev||{})[n]||{})[ln];
+  $('shPrev').innerHTML=pv?pv.map(x=>`<div class="bf"><b>고치기 전 · ${esc(x[0])}${x[2]?` · ${esc(x[2])}`:''}<\/b>${esc(x[1]||'(새로 넣은 문단)')}<\/div>`).join(''):'';
+  const ss=splitSent(t);
+  $('sents').innerHTML=ss.map((s,i)=>`<button class="sent${cur.quotes.has(s)?' on':''}" data-i="${i}">${esc(s)}<\/button>`).join('');
+  $('sents').querySelectorAll('.sent').forEach(b=>b.onclick=()=>{const s=ss[+b.dataset.i];cur.quotes.has(s)?cur.quotes.delete(s):cur.quotes.add(s);b.classList.toggle('on');});
+  $('cats').innerHTML=CATS.map(c=>`<button class="cat${cur.cats.has(c.k)?' on':''}" data-k="${c.k}" style="${cur.cats.has(c.k)?`background:${c.c};border-color:${c.c}`:''}">${c.l}<\/button>`).join('');
+  $('cats').querySelectorAll('.cat').forEach(b=>b.onclick=()=>{const k=b.dataset.k,c=CMAP[k];if(cur.cats.has(k)){cur.cats.delete(k);b.classList.remove('on');b.style.background='';b.style.borderColor='';}else{cur.cats.add(k);b.classList.add('on');b.style.background=c.c;b.style.borderColor=c.c;}});
+  $('memo').value=m.memo||'';
+  $('shDel').style.visibility=marksOf(n)[ln]?'visible':'hidden';
+  $('sheet').classList.add('on');$('scrim').classList.add('on');
+}
+function closeSheet(){$('sheet').classList.remove('on');$('scrim').classList.remove('on');cur=null;}
+$('scrim').onclick=closeSheet;$('shCancel').onclick=closeSheet;
+$('shSave').onclick=()=>{
+  if(!cur)return; const memo=$('memo').value.trim();
+  if(!cur.cats.size&&!memo){toast('버튼을 하나 고르거나 메모를 적어 주세요');return;}
+  const cats=cur.cats.size?[...cur.cats]:['meaning'];
+  (S.marks[cur.n]=S.marks[cur.n]||{})[cur.ln]={cats,memo,quotes:[...cur.quotes],text:cur.t,ts:Date.now()};
+  save();closeSheet();render();toast('표시했어요');
+};
+$('shDel').onclick=()=>{if(!cur)return;delete (S.marks[cur.n]||{})[cur.ln];if(S.marks[cur.n]&&!Object.keys(S.marks[cur.n]).length)delete S.marks[cur.n];save();closeSheet();render();toast('지웠어요');};
+
+// 모아보기
+function renderList(){
+  const by={};CATS.forEach(c=>by[c.k]=0);
+  const eps=Object.keys(S.marks).map(Number).sort((a,b)=>a-b);
+  eps.forEach(n=>Object.values(S.marks[n]).forEach(m=>m.cats.forEach(k=>by[k]++)));
+  let h=`<div class="stat">${CATS.map(c=>`<span class="chip" style="background:${c.c}">${c.l} ${by[c.k]}<\/span>`).join('')}<\/div>`;
+  if(!eps.length&&!Object.keys(S.notes).length) h+=`<div class="card hint">아직 표시가 없어요. 읽기에서 문단을 눌러 표시해 보세요.<\/div>`;
+  const all=[...new Set([...eps,...Object.keys(S.notes).map(Number)])].sort((a,b)=>a-b);
+  all.forEach(n=>{
+    const ms=S.marks[n]||{};
+    h+=`<div class="card"><h3>${esc(EP[n]?EP[n].t:n+'화')}<\/h3>`;
+    if(S.notes[n]) h+=`<div class="hint" style="margin-bottom:6px">한마디: ${esc(S.notes[n])}<\/div>`;
+    Object.keys(ms).map(Number).sort((a,b)=>a-b).forEach(ln=>{const m=ms[ln];
+      const show=(m.quotes&&m.quotes.length)?m.quotes.join(' … '):m.text;
+      h+=`<div class="it" data-n="${n}" data-l="${ln}">${m.cats.map(k=>`<span class="chip" style="background:${CMAP[k].c}">${CMAP[k].l}<\/span>`).join(' ')}
+        <div class="txt">${esc(show)}<\/div>${m.memo?`<div class="hint">메모: ${esc(m.memo)}<\/div>`:''}<\/div>`;});
+    h+=`<\/div>`;
+  });
+  $('v-list').innerHTML=h;
+  $('v-list').querySelectorAll('.it').forEach(el=>el.onclick=()=>{view('read');go(+el.dataset.n,true);setTimeout(()=>{const p=document.querySelector(`.p[data-l="${el.dataset.l}"]`);if(p){p.scrollIntoView({block:'center'});}},30);});
+}
+// 회차 한눈에
+function renderEps(){
+  const r=Object.keys(S.read).length;
+  let h=`<div class="card"><div class="hint">다 읽음 ${r} / ${DATA.eps.length}편 · 표시 ${total()}개 · 진한 칸 = 다 읽음, 빨간 숫자 = 표시 수<\/div><\/div><div class="grid-eps">`;
+  h+=DATA.eps.map(e=>{const k=Object.keys(marksOf(e.n)).length;return `<div class="ge${S.read[e.n]?' read':''}${e.n==S.cur?' cur':''}" data-n="${e.n}">${e.n}${k?`<b>${k}<\/b>`:''}<\/div>`;}).join('');
+  h+=`<\/div>`;
+  $('v-eps').innerHTML=h;
+  $('v-eps').querySelectorAll('.ge').forEach(el=>el.onclick=()=>{view('read');go(+el.dataset.n);});
+}
+// 보내기
+function exportText(){
+  const L=[`[소등일 작가 표시 · 원고 ${DATA.commit} · ${new Date().toISOString().slice(0,10)}]`];
+  const all=[...new Set([...Object.keys(S.marks),...Object.keys(S.notes)].map(Number))].sort((a,b)=>a-b);
+  all.forEach(n=>{
+    if(S.notes[n]) L.push(`${n}화 한마디: ${S.notes[n]}`);
+    const ms=S.marks[n]||{};
+    Object.keys(ms).map(Number).sort((a,b)=>a-b).forEach(ln=>{const m=ms[ln];
+      const q=(m.quotes&&m.quotes.length)?m.quotes.map(x=>`「${x}」`).join(' '):`「${m.text}」`;
+      L.push(`${n}화 ${ln}줄 [${m.cats.map(k=>CMAP[k].l).join('/')}] ${q}${m.memo?` — ${m.memo}`:''}`);});
+  });
+  return L.join('\n');
+}
+function renderSend(){
+  const t=exportText();
+  $('v-send').innerHTML=`<div class="card"><h3>보내는 방법<\/h3><div class="hint">
+   ${window.__REMOTE?'<b>깃허브로 보내기<\/b>를 누르면 비공개 저장소로 바로 갑니다. 데스크탑 Claude에게 「표시 반영해 줘」라고만 하세요. 보낸 표시는 이 폰에서 지워집니다.<br><br>안 될 때: ':''}① <b>글 복사<\/b>를 누르고 Claude 대화창에 붙여 넣으며 「표시 반영해줘」라고 하면 됩니다.<br>
+   ② 또는 <b>파일로 저장<\/b>을 눌러 받은 파일을 <b>jin_social/review/marks/<\/b> 폴더에 넣어 주셔도 됩니다.<br>
+   표시는 이 기기 브라우저에 남아 있으니, 반영이 끝난 뒤 <b>보낸 표시 비우기<\/b>로 정리하세요.<\/div>
+   <div class="row" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+   ${window.__REMOTE?'<button class="btn pri" id="gh">깃허브로 보내기<\/button>':''}<button class="btn ${window.__REMOTE?'':'pri'}" id="cp">글 복사<\/button><button class="btn" id="dl">파일로 저장<\/button><button class="btn" id="clr">보낸 표시 비우기<\/button><\/div><\/div>
+   <pre class="out" id="out">${esc(t)}<\/pre>`;
+  if(window.__REMOTE)$('gh').onclick=async()=>{if(!total()&&!Object.keys(S.notes).length){toast('보낼 표시가 없어요');return;}
+    $('gh').disabled=true;$('gh').textContent='보내는 중…';
+    try{const name=await window.__REMOTE.send(JSON.stringify({commit:DATA.commit,exported:new Date().toISOString(),marks:S.marks,notes:S.notes,read:S.read,text:t},null,1),total());
+      S.marks={};S.notes={};save();renderSend();render();toast('보냈어요 — '+name);}
+    catch(e){toast('못 보냈어요: '+e.message);$('gh').disabled=false;$('gh').textContent='깃허브로 보내기';}};
+  $('cp').onclick=async()=>{try{await navigator.clipboard.writeText(t);toast('복사했어요');}catch(e){const r=document.createRange();r.selectNodeContents($('out'));const s=getSelection();s.removeAllRanges();s.addRange(r);toast('선택해 두었어요 — 길게 눌러 복사');}};
+  $('dl').onclick=()=>{const blob=new Blob([JSON.stringify({commit:DATA.commit,exported:new Date().toISOString(),marks:S.marks,notes:S.notes,read:S.read},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`marks-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();};
+  $('clr').onclick=()=>{if(confirm('표시와 한마디를 모두 비울까요? (다 읽음 표시는 남겨 둡니다)')){S.marks={};S.notes={};save();renderSend();render();toast('비웠어요');}};
+}
+// 고친 내역 — 날짜 탭 · 종류(작가 요청/검수/집필) · 묶음 접기
+let HS={scope:'all',kind:'au',day:null,open:{}};
+const KN={au:'작가 요청',rv:'검수',wr:'집필 때 교정'};
+function renderHist(){
+  const H=DATA.hist||[]; const onlyN=HS.scope==='cur'?S.cur:null;
+  const cnt=b=>Object.keys(b.eps).reduce((s,n)=>s+((onlyN===null||+n===onlyN)?b.eps[n].length:0),0);
+  const days=[...new Set(H.map(b=>b.d.slice(0,5)))];
+  if(!HS.day||!days.includes(HS.day))HS.day=days[0];
+  const inKind=b=>HS.kind==='all'||b.k===HS.kind;
+  let h=`<div class="card"><div class="hctl">
+   <button class="btn ${HS.scope==='all'?'pri':''}" data-sc="all">전체 회차<\/button><button class="btn ${HS.scope==='cur'?'pri':''}" data-sc="cur">${esc(EP[S.cur].t.split('.')[0])}만<\/button><\/div>
+   <div class="hctl">${['au','rv','wr','all'].map(k=>{const c=H.filter(b=>b.d.startsWith(HS.day)&&(k==='all'||b.k===k)).reduce((s,b)=>s+cnt(b),0);return `<button class="btn chipk k-${k} ${HS.kind===k?'pri':''}" data-k="${k}">${k==='all'?'모두':KN[k]} <small>${c}<\/small><\/button>`}).join('')}<\/div>
+   <div class="dtabs">${days.map(d=>{const c=H.filter(b=>b.d.startsWith(d)&&inKind(b)).reduce((s,b)=>s+cnt(b),0);const [m,dd]=d.split('-');return `<button class="dt ${d===HS.day?'on':''}" data-d="${d}">${+m}/${+dd}<small>${c}<\/small><\/button>`}).join('')}<\/div>
+   <div class="hint">작가 요청 = 작가님이 표시·지시·결정하신 것을 고친 묶음. 검수 = 교정자·검증자가 스스로 찾아 고친 묶음. 묶음을 누르면 펼쳐집니다(빨강 = 전, 초록 = 후).<\/div><\/div>`;
+  let total=0;
+  H.filter(b=>b.d.startsWith(HS.day)&&inKind(b)).forEach(b=>{
+    const c=cnt(b); if(!c)return; total+=c;
+    const op=HS.open[b.c];
+    let inner='';
+    if(op) Object.keys(b.eps).map(Number).sort((x,y)=>x-y).forEach(n=>{
+      if(onlyN!==null&&n!==onlyN)return;
+      b.eps[n].forEach(([ln,bf,af,why])=>{
+        inner+=`<div class="hi" data-n="${n}" data-l="${ln}"><b>${n}화 ${ln}줄<\/b>${why?`<span class="why">${esc(why)}<\/span>`:''}
+         <div class="bf">${bf?esc(bf):'<i>(없던 문단 — 새로 넣음)<\/i>'}<\/div><div class="af">${af?esc(af):'<i>(지움)<\/i>'}<\/div><\/div>`;});
+    });
+    const epsL=Object.keys(b.eps).map(Number).filter(n=>onlyN===null||n===onlyN).sort((x,y)=>x-y);
+    const rng=epsL.length>6?`${epsL[0]}~${epsL[epsL.length-1]}화 (${epsL.length}편)`:epsL.map(n=>n+'화').join('·');
+    h+=`<div class="card hbk"><div class="hb" data-c="${b.c}"><span class="kb k-${b.k}">${KN[b.k]}<\/span> <span class="tm">${esc(b.d.slice(6))}<\/span> ${esc(b.m)}<div class="hs">${rng} · ${c}곳 ${op?'▲ 접기':'▼ 펼치기'}<\/div><\/div>${inner}<\/div>`;
+  });
+  if(!total) h+=`<div class="card hint">이 날짜에는 ${HS.kind==='all'?'':KN[HS.kind]+' '}고친 곳이 없어요.<\/div>`;
+  $('v-hist').innerHTML=h;
+  $('v-hist').querySelectorAll('[data-sc]').forEach(e=>e.onclick=()=>{HS.scope=e.dataset.sc;renderHist();});
+  $('v-hist').querySelectorAll('[data-k]').forEach(e=>e.onclick=()=>{HS.kind=e.dataset.k;renderHist();});
+  $('v-hist').querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{HS.day=e.dataset.d;renderHist();});
+  $('v-hist').querySelectorAll('.hb[data-c]').forEach(e=>e.onclick=()=>{HS.open[e.dataset.c]=!HS.open[e.dataset.c];renderHist();});
+  $('v-hist').querySelectorAll('.hi').forEach(el=>el.onclick=()=>{view('read');go(+el.dataset.n,true);setTimeout(()=>{const p=document.querySelector(`.p[data-l="${el.dataset.l}"]`);if(p){p.scrollIntoView({block:'center'});p.style.outline='2px solid #3c9a52';}},30);});
+}
+function view(v){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
+  ['read','list','eps','send','hist'].forEach(k=>$('v-'+k).classList.toggle('hide',k!==v));
+  if(v==='list')renderList(); if(v==='eps')renderEps(); if(v==='send')renderSend(); if(v==='hist')renderHist(); if(v==='read')render();
+  if(v!=='read')window.scrollTo(0,0);
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>view(t.dataset.v));
+addEventListener('scroll',()=>{S.pos[S.cur]=scrollY;clearTimeout(window._ps);window._ps=setTimeout(save,400);},{passive:true});
+document.addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA')return;if(e.key==='Escape')closeSheet();});
+go(S.cur in EP?S.cur:DATA.eps[0].n);
+mirror();
+</script>
+<script>
+(function(){
+const REPO='jinwon93/jin-social', API='https://api.github.com/repos/'+REPO+'/contents/';
+const $=id=>document.getElementById(id);
+const tok=()=>localStorage.getItem('sdi_tok')||'';
+async function get(path){
+  const r=await fetch(API+path+'?ref=main&t='+Date.now(),{headers:{Authorization:'Bearer '+tok(),Accept:'application/vnd.github.raw+json'},cache:'no-store'});
+  if(r.status===401||r.status===403)throw new Error('열쇠가 맞지 않거나 권한이 없어요 ('+r.status+')');
+  if(r.status===404)throw new Error('파일이 없어요: '+path);
+  if(!r.ok)throw new Error('불러오기 실패 '+r.status);
+  return r.json();
+}
+function b64(s){const u=new TextEncoder().encode(s);let x='';for(let i=0;i<u.length;i+=8192)x+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(x);}
+async function send(content,count){
+  const d=new Date(),z=n=>String(n).padStart(2,'0');
+  const name=`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}.json`;
+  const r=await fetch(API+'review/marks/inbox/'+name,{method:'PUT',headers:{Authorization:'Bearer '+tok(),Accept:'application/vnd.github+json'},
+    body:JSON.stringify({message:`폰 표시 ${count}곳 (${name})`,content:b64(content),branch:'main'})});
+  if(!r.ok)throw new Error('저장소에 못 올렸어요 ('+r.status+')');
+  return name;
+}
+let IDX=null;
+async function index(){
+  $('gErr').textContent='';
+  if(!tok()){$('gTok').style.display='';$('gInfo').textContent='열쇠를 넣고 회차를 고른 뒤 불러오기를 누르세요.';return;}
+  $('gTok').style.display='none';
+  try{IDX=await get('reader/data/index.json');
+    const ns=IDX.eps.map(e=>e.n), last=ns[ns.length-1];
+    const was=JSON.parse(localStorage.getItem('sdi_rng')||'null');
+    $('ga').value=was?was[0]:Math.max(ns[0],last-9); $('gb').value=was?was[1]:last;
+    $('gInfo').textContent=`원고 ${IDX.commit} · ${IDX.built} 기준 · 1~${last}화`;
+  }catch(e){$('gErr').textContent=e.message;$('gTok').style.display='';}
+}
+async function load(){
+  if(!tok()){const v=$('tok').value.trim();if(!v){$('gErr').textContent='열쇠를 넣어 주세요';return;}localStorage.setItem('sdi_tok',v);}
+  if(!IDX){await index();if(!IDX)return;}
+  let a=+$('ga').value,b=+$('gb').value; if(!a||!b||a>b){$('gErr').textContent='회차 범위를 확인해 주세요';return;}
+  if(b-a>29){$('gErr').textContent='한 번에 30화까지만 불러올 수 있어요';return;}
+  localStorage.setItem('sdi_rng',JSON.stringify([a,b]));
+  const want=IDX.eps.filter(e=>e.n>=a&&e.n<=b); if(!want.length){$('gErr').textContent='그 범위에 회차가 없어요';return;}
+  $('gGo').disabled=true;$('gGo').textContent='불러오는 중… 0/'+want.length;
+  try{
+    const D={commit:IDX.commit,built:IDX.built,eps:[],flags:{},changed:{},hist:[],prev:{}},H={};let k=0;
+    const parts=await Promise.all(want.map(e=>get(`reader/data/${String(e.n).padStart(4,'0')}.json`).then(x=>{$('gGo').textContent='불러오는 중… '+(++k)+'/'+want.length;return x;})));
+    parts.forEach(x=>{const n=String(x.e.n);D.eps.push(x.e);D.flags[n]=x.flags;D.changed[n]=x.changed;D.prev[n]=x.prev;
+      x.hist.forEach(h=>{(H[h.c]=H[h.c]||{c:h.c,d:h.d,m:h.m,k:h.k,eps:{}}).eps[n]=h.items;});});
+    D.eps.sort((p,q)=>p.n-q.n); D.hist=Object.values(H).sort((p,q)=>p.d<q.d?1:-1);
+    try{const K='sodeungil_reader_v1',s=JSON.parse(localStorage.getItem(K)||'null');if(s&&!D.eps.some(e=>e.n==s.cur)){s.cur=D.eps[0].n;localStorage.setItem(K,JSON.stringify(s));}}catch(e){}
+    window.__DATA=D; window.__REMOTE={send};
+    const sc=document.createElement('script');sc.textContent=$('sdi-main').textContent;document.body.appendChild(sc);
+    $('gate').remove();
+    const rb=document.createElement('button');rb.id='rng';rb.textContent=`${a}~${b}화 · 범위 바꾸기`;rb.onclick=()=>location.reload();document.body.appendChild(rb);
+  }catch(e){$('gErr').textContent=e.message;$('gGo').disabled=false;$('gGo').textContent='불러오기';}
+}
+$('gGo').onclick=load;
+$('gForget').onclick=()=>{if(confirm('이 폰에서 열쇠를 지울까요?')){localStorage.removeItem('sdi_tok');IDX=null;index();}};
+index();
+})();
+</script>
+
+</body>
+</html>
