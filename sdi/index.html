@@ -395,9 +395,15 @@ function view(v){
   if(v!=='read')window.scrollTo(0,0);
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>view(t.dataset.v));
-addEventListener('scroll',()=>{S.pos[S.cur]=scrollY;clearTimeout(window._ps);window._ps=setTimeout(save,400);},{passive:true});
+addEventListener('scroll',()=>{if(!window._ready)return;S.pos[S.cur]=scrollY;clearTimeout(window._ps);window._ps=setTimeout(save,400);},{passive:true});
 document.addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA')return;if(e.key==='Escape')closeSheet();});
+try{history.scrollRestoration='manual';}catch(e){}
+// 읽던 자리: 나갈 때 바로 저장하고, 다시 열면 화면이 다 그려진 뒤에 한 번 더 그 자리로
+const keepPos=()=>{S.pos[S.cur]=scrollY;save();};
+addEventListener('pagehide',keepPos);document.addEventListener('visibilitychange',()=>{if(document.hidden)keepPos();});
 go(S.cur in EP?S.cur:DATA.eps[0].n);
+setTimeout(()=>{window._ready=true;},1000);
+[60,300,900].forEach(ms=>setTimeout(()=>{if(Math.abs(scrollY-(S.pos[S.cur]||0))>40)window.scrollTo(0,S.pos[S.cur]||0);},ms));
 mirror();
 </script>
 <script>
@@ -451,12 +457,16 @@ async function load(){
     window.__DATA=D; window.__REMOTE={send};
     const sc=document.createElement('script');sc.textContent=$('sdi-main').textContent;document.body.appendChild(sc);
     $('gate').remove();
-    const rb=document.createElement('button');rb.id='rng';rb.className='btn ghost';rb.textContent=`${a}~${b}화 바꾸기`;rb.onclick=()=>location.reload();(document.querySelector('header .bar')||document.body).appendChild(rb);
+    const rb=document.createElement('button');rb.id='rng';rb.className='btn ghost';rb.textContent=`${a}~${b}화 바꾸기`;rb.onclick=()=>{keepNow();sessionStorage.setItem('sdi_pick','1');location.reload();};(document.querySelector('header .bar')||document.body).appendChild(rb);
   }catch(e){$('gErr').textContent=e.message;$('gGo').disabled=false;$('gGo').textContent='불러오기';}
 }
+function keepNow(){try{const K='sodeungil_reader_v1',s=JSON.parse(localStorage.getItem(K)||'null');if(s){s.pos=s.pos||{};s.pos[s.cur]=scrollY;localStorage.setItem(K,JSON.stringify(s));}}catch(e){}}
 $('gGo').onclick=load;
 $('gForget').onclick=()=>{if(confirm('이 폰에서 열쇠를 지울까요?')){localStorage.removeItem('sdi_tok');IDX=null;index();}};
-index();
+// 열쇠와 지난 범위가 있으면 고르는 화면 없이 바로 이어 읽기 (「바꾸기」를 누른 때만 고르는 화면)
+const pick=sessionStorage.getItem('sdi_pick'); sessionStorage.removeItem('sdi_pick');
+if(tok()&&localStorage.getItem('sdi_rng')&&!pick){$('gInfo').textContent='지난번 읽던 데로 이어서 불러오는 중…';index().then(()=>{if(IDX)load();});}
+else index();
 })();
 </script>
 
