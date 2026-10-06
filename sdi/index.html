@@ -168,7 +168,7 @@ pre.out{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border
 #gate button.pri{background:#3c6e9a;color:#fff;border-color:#3c6e9a}
 #gate .h{color:#666;font-size:14px;line-height:1.6}
 #gate .err{color:#c0392b;margin-top:8px}
-#rng{position:fixed;right:10px;bottom:10px;z-index:50;font-size:13px;padding:6px 10px;border-radius:99px;border:1px solid #999;background:#fff;opacity:.85}
+#rng{margin-left:auto;font-size:12px;padding:4px 8px;white-space:nowrap}
 </style>
 <div id="gate"><div class="box">
  <h2>소등일 읽기</h2>
@@ -451,7 +451,7 @@ async function load(){
     window.__DATA=D; window.__REMOTE={send};
     const sc=document.createElement('script');sc.textContent=$('sdi-main').textContent;document.body.appendChild(sc);
     $('gate').remove();
-    const rb=document.createElement('button');rb.id='rng';rb.textContent=`${a}~${b}화 · 범위 바꾸기`;rb.onclick=()=>location.reload();document.body.appendChild(rb);
+    const rb=document.createElement('button');rb.id='rng';rb.className='btn ghost';rb.textContent=`${a}~${b}화 바꾸기`;rb.onclick=()=>location.reload();(document.querySelector('header .bar')||document.body).appendChild(rb);
   }catch(e){$('gErr').textContent=e.message;$('gGo').disabled=false;$('gGo').textContent='불러오기';}
 }
 $('gGo').onclick=load;
