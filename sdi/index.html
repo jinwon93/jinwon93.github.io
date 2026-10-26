@@ -102,6 +102,7 @@ pre.out{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border
 .why{display:inline-block;background:#8a5a2b;color:#fff;border-radius:99px;padding:1px 8px;font-size:12px;margin-left:6px}
 .hctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .prevbox{margin:8px 0 10px}
+.hi .rvb{float:right;padding:3px 10px;font-size:12px;margin-left:6px}.hi.rvd .af{text-decoration:line-through;opacity:.6}
 </style>
 </head>
 <body>
@@ -198,8 +199,9 @@ const CATS=[
 ];
 const CMAP=Object.fromEntries(CATS.map(c=>[c.k,c]));
 const KEY='sodeungil_reader_v1';
-let S={marks:{},notes:{},read:{},cur:DATA.eps[0].n,fs:17.5,flag:true,chg:false,pos:{}};
+let S={marks:{},notes:{},read:{},rev:{},cur:DATA.eps[0].n,fs:17.5,flag:true,chg:false,pos:{}};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)S=Object.assign(S,s);}catch(e){}
+if(!S.rev)S.rev={};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('저장 공간을 못 써요 — 보내기로 내보내 두세요');}mirror();}
 // 클로드가 아티팩트 디버그 로그로 표시를 바로 읽도록 한 줄씩 남긴다(보내기 없이)
 function mirror(){try{const L=exportText().split('\n');console.log('SDI_MARKS_BEGIN '+L.length);L.forEach(l=>console.log('SDI '+l));console.log('SDI_MARKS_END');}catch(e){}}
@@ -333,6 +335,7 @@ function exportText(){
       const q=(m.quotes&&m.quotes.length)?m.quotes.map(x=>`「${x}」`).join(' '):`「${m.text}」`;
       L.push(`${n}화 ${ln}줄 [${m.cats.map(k=>CMAP[k].l).join('/')}] ${q}${m.memo?` — ${m.memo}`:''}`);});
   });
+  Object.values(S.rev||{}).sort((a,b)=>a.n-b.n||a.ln-b.ln).forEach(r=>L.push(`${r.n}화 ${r.ln}줄 되돌려 ${JSON.stringify({from:r.af,to:r.bf})}`));
   return L.join('\n');
 }
 function renderSend(){
@@ -344,17 +347,18 @@ function renderSend(){
    <div class="row" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
    ${window.__REMOTE?'<button class="btn pri" id="gh">깃허브로 보내기<\/button>':''}<button class="btn ${window.__REMOTE?'':'pri'}" id="cp">글 복사<\/button><button class="btn" id="dl">파일로 저장<\/button><button class="btn" id="clr">보낸 표시 비우기<\/button><\/div><\/div>
    <pre class="out" id="out">${esc(t)}<\/pre>`;
-  if(window.__REMOTE)$('gh').onclick=async()=>{if(!total()&&!Object.keys(S.notes).length){toast('보낼 표시가 없어요');return;}
+  if(window.__REMOTE)$('gh').onclick=async()=>{if(!total()&&!Object.keys(S.notes).length&&!Object.keys(S.rev||{}).length){toast('보낼 표시가 없어요');return;}
     $('gh').disabled=true;$('gh').textContent='보내는 중…';
     try{const name=await window.__REMOTE.send(JSON.stringify({commit:DATA.commit,exported:new Date().toISOString(),marks:S.marks,notes:S.notes,read:S.read,text:t},null,1),total());
-      S.marks={};S.notes={};save();renderSend();render();toast('보냈어요 — '+name);}
+      S.marks={};S.notes={};S.rev={};save();renderSend();render();toast('보냈어요 — '+name);}
     catch(e){toast('못 보냈어요: '+e.message);$('gh').disabled=false;$('gh').textContent='깃허브로 보내기';}};
   $('cp').onclick=async()=>{try{await navigator.clipboard.writeText(t);toast('복사했어요');}catch(e){const r=document.createRange();r.selectNodeContents($('out'));const s=getSelection();s.removeAllRanges();s.addRange(r);toast('선택해 두었어요 — 길게 눌러 복사');}};
-  $('dl').onclick=()=>{const blob=new Blob([JSON.stringify({commit:DATA.commit,exported:new Date().toISOString(),marks:S.marks,notes:S.notes,read:S.read},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`marks-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();};
-  $('clr').onclick=()=>{if(confirm('표시와 한마디를 모두 비울까요? (다 읽음 표시는 남겨 둡니다)')){S.marks={};S.notes={};save();renderSend();render();toast('비웠어요');}};
+  $('dl').onclick=()=>{const blob=new Blob([JSON.stringify({commit:DATA.commit,exported:new Date().toISOString(),marks:S.marks,notes:S.notes,read:S.read,rev:S.rev},null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`marks-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();};
+  $('clr').onclick=()=>{if(confirm('표시와 한마디·되돌려를 모두 비울까요? (다 읽음 표시는 남겨 둡니다)')){S.marks={};S.notes={};S.rev={};save();renderSend();render();toast('비웠어요');}};
 }
 // 고친 내역 — 날짜 탭 · 종류(작가 요청/검수/집필) · 묶음 접기
 let HS={scope:'all',kind:'au',day:null,open:{}};
+const HREV={};
 const KN={au:'작가 요청',rv:'검수',wr:'집필 때 교정'};
 function renderHist(){
   const H=DATA.hist||[]; const onlyN=HS.scope==='cur'?S.cur:null;
@@ -366,7 +370,7 @@ function renderHist(){
    <button class="btn ${HS.scope==='all'?'pri':''}" data-sc="all">전체 회차<\/button><button class="btn ${HS.scope==='cur'?'pri':''}" data-sc="cur">${esc(EP[S.cur].t.split('.')[0])}만<\/button><\/div>
    <div class="hctl">${['au','rv','wr','all'].map(k=>{const c=H.filter(b=>b.d.startsWith(HS.day)&&(k==='all'||b.k===k)).reduce((s,b)=>s+cnt(b),0);return `<button class="btn chipk k-${k} ${HS.kind===k?'pri':''}" data-k="${k}">${k==='all'?'모두':KN[k]} <small>${c}<\/small><\/button>`}).join('')}<\/div>
    <div class="dtabs">${days.map(d=>{const c=H.filter(b=>b.d.startsWith(d)&&inKind(b)).reduce((s,b)=>s+cnt(b),0);const [m,dd]=d.split('-');return `<button class="dt ${d===HS.day?'on':''}" data-d="${d}">${+m}/${+dd}<small>${c}<\/small><\/button>`}).join('')}<\/div>
-   <div class="hint">작가 요청 = 작가님이 표시·지시·결정하신 것을 고친 묶음. 검수 = 교정자·검증자가 스스로 찾아 고친 묶음. 묶음을 누르면 펼쳐집니다(빨강 = 전, 초록 = 후).<\/div><\/div>`;
+   <div class="hint">작가 요청 = 작가님이 표시·지시·결정하신 것을 고친 묶음. 검수 = 교정자·검증자가 스스로 찾아 고친 묶음. 묶음을 누르면 펼쳐집니다(빨강 = 전, 초록 = 후). <b>고친 게 마음에 안 들면 「되돌려」<\/b>를 누르고 「보내기」로 보내 주세요 — 원래 문장으로 돌리고 같은 꼴은 다시 안 고칩니다.<\/div><\/div>`;
   let total=0;
   H.filter(b=>b.d.startsWith(HS.day)&&inKind(b)).forEach(b=>{
     const c=cnt(b); if(!c)return; total+=c;
@@ -375,8 +379,11 @@ function renderHist(){
     if(op) Object.keys(b.eps).map(Number).sort((x,y)=>x-y).forEach(n=>{
       if(onlyN!==null&&n!==onlyN)return;
       b.eps[n].forEach(([ln,bf,af,why])=>{
-        inner+=`<div class="hi" data-n="${n}" data-l="${ln}"><b>${n}화 ${ln}줄<\/b>${why?`<span class="why">${esc(why)}<\/span>`:''}
-         <div class="bf">${bf?esc(bf):'<i>(없던 문단 — 새로 넣음)<\/i>'}<\/div><div class="af">${af?esc(af):'<i>(지움)<\/i>'}<\/div><\/div>`;});
+        const rk=b.c+'|'+n+'|'+ln; const rv=!!S.rev[rk];
+        inner+=`<div class="hi${rv?' rvd':''}" data-n="${n}" data-l="${ln}"><b>${n}화 ${ln}줄<\/b>${why?`<span class="why">${esc(why)}<\/span>`:''}
+         <button class="btn rvb${rv?' pri':''}" data-rk="${esc(rk)}">${rv?'되돌려 ✓':'되돌려'}<\/button>
+         <div class="bf">${bf?esc(bf):'<i>(없던 문단 — 새로 넣음)<\/i>'}<\/div><div class="af">${af?esc(af):'<i>(지움)<\/i>'}<\/div><\/div>`;
+        HREV[rk]={n,ln,bf,af};});
     });
     const epsL=Object.keys(b.eps).map(Number).filter(n=>onlyN===null||n===onlyN).sort((x,y)=>x-y);
     const rng=epsL.length>6?`${epsL[0]}~${epsL[epsL.length-1]}화 (${epsL.length}편)`:epsL.map(n=>n+'화').join('·');
@@ -388,6 +395,9 @@ function renderHist(){
   $('v-hist').querySelectorAll('[data-k]').forEach(e=>e.onclick=()=>{HS.kind=e.dataset.k;renderHist();});
   $('v-hist').querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{HS.day=e.dataset.d;renderHist();});
   $('v-hist').querySelectorAll('.hb[data-c]').forEach(e=>e.onclick=()=>{HS.open[e.dataset.c]=!HS.open[e.dataset.c];renderHist();});
+  $('v-hist').querySelectorAll('.rvb').forEach(el=>el.onclick=ev=>{ev.stopPropagation();const k=el.dataset.rk;
+    if(S.rev[k]){delete S.rev[k];toast('되돌려 취소');}else{const r=HREV[k];if(!r)return;S.rev[k]={n:r.n,ln:r.ln,bf:r.bf||'',af:r.af||''};toast('되돌려 표시 — 「보내기」로 보내 주세요');}
+    save();renderHist();});
   $('v-hist').querySelectorAll('.hi').forEach(el=>el.onclick=()=>{view('read');go(+el.dataset.n,true);setTimeout(()=>{const p=document.querySelector(`.p[data-l="${el.dataset.l}"]`);if(p){p.scrollIntoView({block:'center'});p.style.outline='2px solid #3c9a52';}},30);});
 }
 function view(v){
