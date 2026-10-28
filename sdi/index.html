@@ -390,7 +390,7 @@ function renderHist(){
     h+=`<div class="card hbk"><div class="hb" data-c="${b.c}"><span class="kb k-${b.k}">${KN[b.k]}<\/span> <span class="tm">${esc(b.d.slice(6))}<\/span> ${esc(b.m)}<div class="hs">${rng} · ${c}곳 ${op?'▲ 접기':'▼ 펼치기'}<\/div><\/div>${inner}<\/div>`;
   });
   if(!total) h+=`<div class="card hint">이 날짜에는 ${HS.kind==='all'?'':KN[HS.kind]+' '}고친 곳이 없어요.<\/div>`;
-  $('v-hist').innerHTML=h;
+  const _hy=scrollY; $('v-hist').innerHTML=h; if(CURV==='hist')window.scrollTo(0,_hy);
   $('v-hist').querySelectorAll('[data-sc]').forEach(e=>e.onclick=()=>{HS.scope=e.dataset.sc;renderHist();});
   $('v-hist').querySelectorAll('[data-k]').forEach(e=>e.onclick=()=>{HS.kind=e.dataset.k;renderHist();});
   $('v-hist').querySelectorAll('[data-d]').forEach(e=>e.onclick=()=>{HS.day=e.dataset.d;renderHist();});
@@ -400,14 +400,18 @@ function renderHist(){
     save();renderHist();});
   $('v-hist').querySelectorAll('.hi').forEach(el=>el.onclick=()=>{view('read');go(+el.dataset.n,true);setTimeout(()=>{const p=document.querySelector(`.p[data-l="${el.dataset.l}"]`);if(p){p.scrollIntoView({block:'center'});p.style.outline='2px solid #3c9a52';}},30);});
 }
+let CURV='read';
 function view(v){
+  // 10-28 작가: 고친 내역에서 문단을 눌러 읽기로 갔다가 돌아오면 위치가 처음으로 리셋됐다 → 탭마다 스크롤 자리를 따로 기억한다
+  window._vpos=window._vpos||{}; window._vpos[CURV]=scrollY; if(CURV==='read')S.pos[S.cur]=scrollY;
+  CURV=v;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
   ['read','list','eps','send','hist'].forEach(k=>$('v-'+k).classList.toggle('hide',k!==v));
   if(v==='list')renderList(); if(v==='eps')renderEps(); if(v==='send')renderSend(); if(v==='hist')renderHist(); if(v==='read')render();
-  if(v!=='read')window.scrollTo(0,0);
+  if(v!=='read'){const y=(window._vpos||{})[v]||0; window.scrollTo(0,y); requestAnimationFrame(()=>window.scrollTo(0,y));}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>view(t.dataset.v));
-addEventListener('scroll',()=>{if(!window._ready)return;S.pos[S.cur]=scrollY;clearTimeout(window._ps);window._ps=setTimeout(save,400);},{passive:true});
+addEventListener('scroll',()=>{if(!window._ready)return;if(typeof CURV!=='undefined'&&CURV!=='read'){(window._vpos=window._vpos||{})[CURV]=scrollY;return;}S.pos[S.cur]=scrollY;clearTimeout(window._ps);window._ps=setTimeout(save,400);},{passive:true});
 document.addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA')return;if(e.key==='Escape')closeSheet();});
 try{history.scrollRestoration='manual';}catch(e){}
 // 읽던 자리: 나갈 때 바로 저장하고, 다시 열면 화면이 다 그려진 뒤에 한 번 더 그 자리로
