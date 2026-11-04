@@ -59,6 +59,13 @@ body.nochg .p.chg::before{display:none}
 .sents{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
 .sent{font-family:"AppleMyungjo","Noto Serif KR",serif;font-size:15px;line-height:1.5;padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:#fcfaf5;cursor:pointer;text-align:left}
 .sent.on{background:#ffe5e5;border-color:#e5484d}
+/* 낱말 고르기 — 11-04 작가 「문장 안의 특정 단어도 선택」 */
+.wmode{display:flex;gap:6px;margin:6px 0 2px}.wmode .btn{flex:1;padding:7px 0}
+.wrow{display:flex;flex-wrap:wrap;gap:2px;margin:0 0 8px;padding:6px;border:1px solid var(--line);border-radius:8px;background:#fcfaf5}
+.w{font-family:"AppleMyungjo","Noto Serif KR",serif;font-size:15px;line-height:1.5;padding:3px 5px;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;color:inherit}
+.w.on{background:#fff1c2;border-color:#b5832a}
+.w.ws{font-family:inherit;font-size:11px;color:var(--sub);border-color:var(--line);margin-right:4px}.w.ws.on{background:#ffe5e5;border-color:#e5484d;color:#c62828}
+.p .wq{background:#fff1c2;box-shadow:inset 0 -2px 0 #b5832a;border-radius:2px}
 /* 여러 문단(범위) 표시 — 11-02 작가 「문단 시작과 끝 선택」 */
 .p.rng{box-shadow:inset 3px 0 0 0 var(--mc,#e5484d);background:color-mix(in srgb,var(--mc,#e5484d) 6%,transparent)}
 .p.rng-a{box-shadow:inset 0 0 0 2px #2f6fdb;background:#eaf1ff}
@@ -154,7 +161,7 @@ pre.out{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border
     <div id="shFlag"></div>
     <div id="shPrev" class="prevbox"></div>
     <button class="rangebtn" id="shRange">▸ 여러 문단 고르기 — 이 문단부터 끝 문단까지</button>
-    <div class="hint">걸리는 문장만 누르세요(안 누르면 고른 문단 전체).</div>
+    <div class="hint" id="selHint">걸리는 <b>부분만</b> 눌러 이어 고르세요(예: 짚신·끄는·소리가·다가왔다 → 『짚신 끄는 소리가 다가왔다』). 문장 통째는 맨 앞 「문장」. 아무것도 안 누르면 고른 문단 전체.</div>
     <div class="sents" id="sents"></div>
     <div class="cats" id="cats"></div>
     <textarea class="memo-in" id="memo" placeholder="한 줄 메모 (예: 접수관이?? 무슨 말인지 모르겠네)"></textarea>
@@ -259,6 +266,7 @@ function paraHTML(n,ln,t){
     (pm.quotes||[]).forEach(q=>{const e=esc(q); if(e&&body.includes(e)) body=body.replace(e,`<span class="q">${e}<\/span>`);});}
   if(m){cls+=' marked'+(m.to?' rng':''); const c=CMAP[m.cats[0]]; style=` style="--mc:${c?c.c:'#e5484d'}"`;
     (m.quotes||[]).forEach(q=>{const e=esc(q); if(e&&body.includes(e)) body=body.replace(e,`<span class="q">${e}<\/span>`);});
+    (m.words||[]).forEach(q=>{const e=esc(q); if(e&&body.includes(e)) body=body.replace(e,`<span class="wq">${e}<\/span>`);});
     if(m.to) body=`<span class="rbadge">${lnLabel(ln,m.to)} · 문단 ${parasIn(n,ln,m.to).length}개 묶음<\/span><br>`+body;
     body+=`<div class="tags">${m.cats.map(k=>`<span class="chip" style="background:${CMAP[k].c}">${CMAP[k].l}<\/span>`).join('')}<\/div>`;
     if(m.memo) body+=`<div class="memo">${esc(m.memo)}<\/div>`;
@@ -299,21 +307,39 @@ function openSheet(n,ln,to){
   const inner=to?Object.keys(marksOf(n)).map(Number).filter(k=>k>ln&&k<=to):[];
   const cats=new Set(m.cats),quotes=new Set(m.quotes||[]);let memo=m.memo||'';
   inner.forEach(k=>{const x=marksOf(n)[k];x.cats.forEach(c=>cats.add(c));(x.quotes||[]).forEach(q=>quotes.add(q));if(x.memo)memo=memo?memo+' / '+x.memo:x.memo;});
-  cur={n,ln,to,t,inner,cats,quotes};
+  cur={n,ln,to,t,inner,cats,quotes,wsel:new Set(to||!m0?[]:(m.wsel||[]))};
   $('shTtl').textContent=to?`${n}화 · ${lnLabel(ln,to)} (문단 ${ps.length}개)`:`${n}화 · ${ln}줄`;
   $('shRange').textContent=to?'▸ 끝 문단 다시 고르기':'▸ 여러 문단 고르기 — 이 문단부터 끝 문단까지';
   const fl=(DATA.flags[n]||{})[ln];
   $('shFlag').innerHTML=fl?`<div class="flagnote">🤖 ${fl.map(esc).join('<br>🤖 ')}<\/div>`:'';
   const pv=((DATA.prev||{})[n]||{})[ln];
   $('shPrev').innerHTML=pv?pv.map(x=>`<div class="bf"><b>고치기 전 · ${esc(x[0])}${x[2]?` · ${esc(x[2])}`:''}<\/b>${esc(x[1]||'(새로 넣은 문단)')}<\/div>`).join(''):'';
-  const ss=ps.flatMap(p=>splitSent(p[1]));
-  $('sents').innerHTML=ss.map((s,i)=>`<button class="sent${cur.quotes.has(s)?' on':''}" data-i="${i}">${esc(s)}<\/button>`).join('');
-  $('sents').querySelectorAll('.sent').forEach(b=>b.onclick=()=>{const s=ss[+b.dataset.i];cur.quotes.has(s)?cur.quotes.delete(s):cur.quotes.add(s);b.classList.toggle('on');});
+  cur.ss=ps.flatMap(p=>splitSent(p[1])); drawSents();
   $('cats').innerHTML=CATS.map(c=>`<button class="cat${cur.cats.has(c.k)?' on':''}" data-k="${c.k}" style="${cur.cats.has(c.k)?`background:${c.c};border-color:${c.c}`:''}">${c.l}<\/button>`).join('');
   $('cats').querySelectorAll('.cat').forEach(b=>b.onclick=()=>{const k=b.dataset.k,c=CMAP[k];if(cur.cats.has(k)){cur.cats.delete(k);b.classList.remove('on');b.style.background='';b.style.borderColor='';}else{cur.cats.add(k);b.classList.add('on');b.style.background=c.c;b.style.borderColor=c.c;}});
   $('memo').value=memo;
   $('shDel').style.visibility=marksOf(n)[ln]?'visible':'hidden';
   $('sheet').classList.add('on');$('scrim').classList.add('on');
+}
+// 문장 고르기 / 낱말 고르기 — 낱말은 붙여 누르면 한 덩어리(「눈길 조차」)로 묶인다
+const toks=s=>s.split(/\s+/).filter(Boolean);
+function phrases(){
+  const by={};[...cur.wsel].forEach(k=>{const [i,j]=k.split(':').map(Number);(by[i]=by[i]||[]).push(j);});
+  const out=[];Object.keys(by).map(Number).sort((a,b)=>a-b).forEach(i=>{const t=toks(cur.ss[i]||'');const js=by[i].sort((a,b)=>a-b);
+    let g=[js[0]];const flush=()=>{const w=g.map(j=>t[j]).join(' ').replace(/^[\s"“「『(…·]+|[\s.,?!…"”」』)·]+$/g,'');if(w)out.push(w);};
+    for(let x=1;x<js.length;x++){if(js[x]===g[g.length-1]+1)g.push(js[x]);else{flush();g=[js[x]];}} if(js.length)flush();});
+  return out;}
+function drawSents(){
+  const ss=cur.ss;
+  $('sents').innerHTML=ss.map((s,i)=>`<div class="wrow"><button class="w ws${cur.quotes.has(s)?' on':''}" data-i="${i}">문장<\/button>${toks(s).map((t,j)=>`<button class="w${cur.wsel.has(i+':'+j)||cur.quotes.has(s)?' on':''}" data-k="${i}:${j}">${esc(t)}<\/button>`).join('')}<\/div>`).join('');
+  $('sents').querySelectorAll('.w').forEach(b=>b.onclick=()=>{
+    if(b.dataset.i!==undefined){const s=ss[+b.dataset.i];if(cur.quotes.has(s))cur.quotes.delete(s);else{cur.quotes.add(s);[...cur.wsel].filter(k=>k.split(':')[0]===b.dataset.i).forEach(k=>cur.wsel.delete(k));}}
+    else{const k=b.dataset.k,s=ss[+k.split(':')[0]];if(cur.quotes.has(s))cur.quotes.delete(s);cur.wsel.has(k)?cur.wsel.delete(k):cur.wsel.add(k);}
+    drawSents();});
+  const pv=$('selPrev');if(pv)pv.remove();
+  const ws=cur.wsel.size?phrases():[];
+  const parts=[...ws.map(x=>`『${esc(x)}』`),...[...cur.quotes].map(x=>`「${esc(x)}」`)];
+  if(parts.length)$('sents').insertAdjacentHTML('afterend',`<div class="hint" id="selPrev">고른 부분: ${parts.join(' ')}<\/div>`);
 }
 function startPick(){if(!cur)return;pick={n:cur.n,from:cur.ln};const n=cur.n;closeSheet();
   $('rangeTxt').textContent=`${n}화 ${pick.from}줄부터 — 끝 문단을 누르세요`;$('rangeBar').classList.add('on');render();
@@ -321,13 +347,14 @@ function startPick(){if(!cur)return;pick={n:cur.n,from:cur.ln};const n=cur.n;clo
 function endPick(){pick=null;$('rangeBar').classList.remove('on');}
 $('shRange').onclick=startPick;
 $('rangeCancel').onclick=()=>{endPick();render();toast('여러 문단 고르기 취소');};
-function closeSheet(){$('sheet').classList.remove('on');$('scrim').classList.remove('on');cur=null;}
+function closeSheet(){const pv=$('selPrev');if(pv)pv.remove();$('sheet').classList.remove('on');$('scrim').classList.remove('on');cur=null;}
 $('scrim').onclick=closeSheet;$('shCancel').onclick=closeSheet;
 $('shSave').onclick=()=>{
   if(!cur)return; const memo=$('memo').value.trim();
   if(!cur.cats.size&&!memo){toast('버튼을 하나 고르거나 메모를 적어 주세요');return;}
   const cats=cur.cats.size?[...cur.cats]:['meaning'];
   const rec={cats,memo,quotes:[...cur.quotes],text:cur.t,ts:Date.now()}; if(cur.to)rec.to=cur.to;
+  if(cur.wsel.size){rec.wsel=[...cur.wsel];rec.words=phrases();rec.ctx=[...new Set([...cur.wsel].map(k=>+k.split(':')[0]))].sort((a,b)=>a-b).map(i=>cur.ss[i]);}
   (S.marks[cur.n]=S.marks[cur.n]||{})[cur.ln]=rec; (cur.inner||[]).forEach(k=>delete S.marks[cur.n][k]);
   save();closeSheet();render();toast('표시했어요');
 };
@@ -348,7 +375,7 @@ function renderList(){
     Object.keys(ms).map(Number).sort((a,b)=>a-b).forEach(ln=>{const m=ms[ln];
       const show=(m.quotes&&m.quotes.length)?m.quotes.join(' … '):m.text;
       h+=`<div class="it" data-n="${n}" data-l="${ln}"><span class="hint">${lnLabel(ln,m.to)}<\/span> ${m.cats.map(k=>`<span class="chip" style="background:${CMAP[k].c}">${CMAP[k].l}<\/span>`).join(' ')}
-        <div class="txt">${esc(show)}<\/div>${m.memo?`<div class="hint">메모: ${esc(m.memo)}<\/div>`:''}<\/div>`;});
+        <div class="txt">${esc(show)}<\/div>${(m.words||[]).length?`<div class="hint">낱말: ${m.words.map(x=>`『${esc(x)}』`).join(' ')}<\/div>`:''}${m.memo?`<div class="hint">메모: ${esc(m.memo)}<\/div>`:''}<\/div>`;});
     h+=`<\/div>`;
   });
   $('v-list').innerHTML=h;
@@ -371,8 +398,9 @@ function exportText(){
     if(S.notes[n]) L.push(`${n}화 한마디: ${S.notes[n]}`);
     const ms=S.marks[n]||{};
     Object.keys(ms).map(Number).sort((a,b)=>a-b).forEach(ln=>{const m=ms[ln];
-      const q=(m.quotes&&m.quotes.length)?m.quotes.map(x=>`「${x}」`).join(' '):String(m.text).split('\n').map(x=>`「${x}」`).join(' ');
-      L.push(`${n}화 ${lnLabel(ln,m.to)} [${m.cats.map(k=>CMAP[k].l).join('/')}] ${q}${m.memo?` — ${m.memo}`:''}`);});
+      const q=(m.quotes&&m.quotes.length)?m.quotes.map(x=>`「${x}」`).join(' '):(m.ctx&&m.ctx.length)?m.ctx.map(x=>`「${x}」`).join(' '):String(m.text).split('\n').map(x=>`「${x}」`).join(' ');
+      const w=(m.words||[]).length?` 낱말${m.words.map(x=>`『${x}』`).join('')}`:'';
+      L.push(`${n}화 ${lnLabel(ln,m.to)} [${m.cats.map(k=>CMAP[k].l).join('/')}] ${q}${w}${m.memo?` — ${m.memo}`:''}`);});
   });
   Object.values(S.rev||{}).sort((a,b)=>a.n-b.n||a.ln-b.ln).forEach(r=>L.push(`${r.n}화 ${r.ln}줄 되돌려 ${JSON.stringify({from:r.af,to:r.bf})}`));
   return L.join('\n');
